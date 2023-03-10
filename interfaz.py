@@ -6,7 +6,7 @@ from googleapiclient.discovery import build
 import pandas as pd
 
 class Canal:
-    def _init_(self, canal, categoria="No categorizado"):
+    def __init__(self, canal, categoria="No categorizado"): 
         self.canal = canal
         self.categoria = categoria
         
@@ -182,7 +182,7 @@ credentials = flow.run_local_server(port=0)
 youtube = build('youtube', 'v3', credentials=credentials)
 
 root = tk.Tk()
-root.geometry("700x600")
+root.geometry("1000x600")
 root.title("Nombre app")
 
 
