@@ -3,7 +3,7 @@ from tkinter import ttk
 import google.oauth2.credentials
 import google_auth_oauthlib.flow
 from googleapiclient.discovery import build
-#import pandas as pd
+import pandas as pd
 
 class Canal:
     def _init_(self, canal, categoria="No categorizado"):
@@ -141,7 +141,7 @@ def suscribirse():
             tree.heading(col, text=col)
         for row in df.to_numpy().tolist():
             tree.insert("", "end", values=row)
-        tree.pack(side='left', fill='both', expand=True,pady=20)
+        tree.pack(expand=True,pady=20)#side='left', fill='both',
         return tree
     
     def on_search():
@@ -216,7 +216,7 @@ main_frame = tk.Frame(root,highlightbackground="black", highlightthickness=2)
 
 main_frame.pack(side=tk.LEFT)
 main_frame.pack_propagate(False)
-main_frame.configure(width=600, height=700)
+main_frame.configure(width=1000, height=700)
 home()
 
 root.mainloop()
