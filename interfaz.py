@@ -1,12 +1,12 @@
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk,messagebox
 import google.oauth2.credentials
 import google_auth_oauthlib.flow
 from googleapiclient.discovery import build
 import pandas as pd
 
 class Canal:
-    def _init_(self, canal, categoria="No categorizado"):
+    def __init__(self, canal, categoria="No categorizado"):
         self.canal = canal
         self.categoria = categoria
         
@@ -114,13 +114,14 @@ def canales():
     canales_frame.pack(pady=20)
 '''
 
+'''
 def suscribirse():
     def search_channels(query):
         request = youtube.search().list(
             part='id,snippet',
             q=query,
             type='channel',
-            maxResults=30
+            maxResults=5
         )
         response = request.execute()
 
@@ -164,6 +165,60 @@ def suscribirse():
 
     table_frame = tk.Frame(suscribirse_frame)
     table_frame.pack(fill='both', expand=True,pady=20)
+
+    suscribirse_frame.pack(pady=20)
+'''
+
+def suscribirse():
+    def agregar_datos_busqueda():
+        tabla.delete(*tabla.get_children())
+
+        query = search_entry.get()
+        busqueda = youtube.search().list(
+            q=query,
+            type='channel',
+            part='id,snippet',
+            maxResults=5
+        ).execute()
+
+        for item in busqueda['items']:
+            id_canal = item['id']['channelId']
+            nombre_canal = item['snippet']['title']
+            descripcion_canal = item['snippet']['description']
+            tabla.insert("",tk.END,text=str(nombre_canal), values=(str(descripcion_canal),str(id_canal)))
+    def suscribirse_acc():
+        text = tabla.item(tabla.selection())['text']
+        values = tabla.item(tabla.selection())['values']
+        print(values)
+        messagebox.showinfo("Título del mensaje", f"El nombre del canal seleccionado es: {text}\nEl ID del canal seleccionado es: {values[1]}")
+        
+    suscribirse_frame=tk.Frame(main_frame)
+    lb=tk.Label(suscribirse_frame,text="Apartado suscribirse",font=("Bold",30))
+    lb.pack()
+
+    search_label = tk.Label(suscribirse_frame, text="Término de búsqueda:")
+    search_label.place(x=40,y=65)
+
+    search_entry = tk.Entry(suscribirse_frame)
+    search_entry.place(x=165,y=65)
+
+    search_button = tk.Button(suscribirse_frame, text="Buscar",command=agregar_datos_busqueda)
+    search_button.place(x=300,y=60)
+
+    tabla=ttk.Treeview(suscribirse_frame,columns=("col1","col2"))
+
+    tabla.column("#0",width=130)
+    tabla.column("col1",width=200)
+    tabla.column("col2",width=170)
+
+    tabla.heading("#0",text="Nombre",anchor=tk.CENTER)
+    tabla.heading("col1",text="Descripcion",anchor=tk.CENTER)
+    tabla.heading("col2",text="ID",anchor=tk.CENTER)
+                
+    tabla.pack(pady=60)
+
+    subscribe_button = tk.Button(suscribirse_frame, text="Suscribirse",command=suscribirse_acc)#command=on_subscribe)
+    subscribe_button.pack(side=tk.BOTTOM)
 
     suscribirse_frame.pack(pady=20)
 
