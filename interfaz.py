@@ -3,7 +3,6 @@ from tkinter import ttk,messagebox
 import google.oauth2.credentials
 import google_auth_oauthlib.flow
 from googleapiclient.discovery import build
-import pandas as pd
 
 class Canal:
     def __init__(self, canal, categoria="No categorizado"):
