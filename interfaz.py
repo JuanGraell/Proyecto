@@ -1,5 +1,6 @@
 import tkinter as tk
-from tkinter import ttk
+from tkinter import *
+from tkinter import messagebox,ttk
 import google.oauth2.credentials
 import google_auth_oauthlib.flow
 from googleapiclient.discovery import build
@@ -27,13 +28,35 @@ def home():
     lb=tk.Label(home_frame,text="Apartado Home",font=("Bold",30))
     lb.pack()
     home_frame.pack(pady=20)
+    c=1
 
+
+
+def show_selection():
+    # Obtener la opción seleccionada.
+    selection = combo.get()
+    messagebox.showinfo(message=f"La opción seleccionada es: {selection}",title="Selección")
+def deSuscribir():
+    window = Toplevel(root)
+    window.title("Desuscrito")
+    lb = tk.Label(window, text="Work In Progress, Deberia de estar desuscrito", font=("Bold", 30))
+    lb.pack()
 
 def canales():
+
+    def editar():
+        # Get selected item to Edit
+        selected_item = tabla.selection()[1]
+        tabla.item(selected_item, text="blub", values=("foo", "bar"))
+
+    def selectItem(a):
+        curItem = tabla.focus()
+        return (tabla.item(curItem))
+
     def obtener_canales_suscritos(yt):
         # Obtener los canales a los que está suscrito el usuario
         canales = []
-        request = yt.subscriptions().list(part="snippet", mine=True, maxResults=50)
+        request = yt.subscriptions().list(part="snippet", mine=True, maxResults=5)#50
         print(request)
         
         while request is not None:
@@ -60,6 +83,35 @@ def canales():
     # Recorrer la lista de objetos Canal y mostrarlos en la tabla
     for i, canal in enumerate(canales):
         tabla.insert("", "end", values=(canal.canal, canal.categoria))
+
+    #texto=str(selectItem[0])
+    
+    texto=tabla.focus()  #tabla.bind('<ButtonRelease-1>', selectItem)
+    print (texto)
+    #texto=texto[2]
+    lbCanal=tk.Label(canales_frame, text="texto")#texto[0]
+    lbCanal.pack()
+    #textField=Text(canales_frame)
+    #textField.pack()
+    
+    BDeSuscribir = Button(canales_frame,text="De-suscribirse",command=deSuscribir)
+    BDeSuscribir.pack()
+
+    n = tk.StringVar()
+    cbCategoria = ttk.Combobox(canales_frame, width = 27, textvariable = n,state="readonly")
+    cbCategoria['values'] = ("No categorizado",' Entretenimiento',' Educacion',' Videojuegos')
+    cbCategoria.current()
+    cbCategoria.pack()#categoryChoosen.grid(column = 1, row = 4)
+
+    bEditar = Button(canales_frame,text="Editar",command=editar)
+    bEditar.pack()
+    
+
+    '''combo = ttk.Combobox(state="readonly",values=["Entretenimiento", "Educacion", "No categorizado","Videojuegos"])
+    combo.pack()#combo.place(x=50, y=50)
+    button = ttk.Button(canales_frame,text="Mostrar selección", command=show_selection)
+    button.pack()#button.place(x=50, y=100) '''
+
 
     canales_frame.pack(pady=20)
 
