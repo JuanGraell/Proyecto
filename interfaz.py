@@ -1,9 +1,10 @@
 import tkinter as tk
+from tkinter import *
 from tkinter import ttk,messagebox
 import google.oauth2.credentials
 import google_auth_oauthlib.flow
 from googleapiclient.discovery import build
-import pandas as pd
+# import pandas as pd
 
 class Canal:
     def __init__(self, canal, categoria="No categorizado"):
@@ -27,13 +28,54 @@ def home():
     lb=tk.Label(home_frame,text="Apartado Home",font=("Bold",30))
     lb.pack()
     home_frame.pack(pady=20)
+    c=1
 
+
+
+def show_selection():
+    # Obtener la opción seleccionada.
+    selection = combo.get()
+    messagebox.showinfo(message=f"La opción seleccionada es: {selection}",title="Selección")
+def deSuscribir():
+    window = Toplevel(root)
+    window.title("Desuscrito")
+    lb = tk.Label(window, text="Work In Progress, Deberia de estar desuscrito", font=("Bold", 30))
+    lb.pack()
 
 def canales():
+
+    def editar():
+        #valores = tabla.selection()[0]
+        '''texto=tabla.bind('<ButtonRelease-1>', selectItem)
+        item = tabla.selection()[0]
+        valores = tabla.item(item, "values")
+
+        tabla.item(valores, values=(texto[0],cbCategoria.get()))'''
+        item = tabla.selection()[0]
+        valor = tabla.item(item, "values")
+        print(item)
+        tabla.item(item, values=(valor[0], cbCategoria.get()))
+
+    def update_window():
+        # Procesar todos los eventos pendientes
+        canales_frame.update()
+
+    def selectItem(a):
+        item = tabla.selection()[0]
+        valor = tabla.item(item, "values")
+        print (valor)
+        update_window()
+        
+        cbCategoria.set(valor[1])
+        lbCanal.config(text=valor[0])
+        return valor
+        #curItem = tabla.focus()
+        #return (tabla.item(curItem,"values"))
+
     def obtener_canales_suscritos(yt):
         # Obtener los canales a los que está suscrito el usuario
         canales = []
-        request = yt.subscriptions().list(part="snippet", mine=True, maxResults=50)
+        request = yt.subscriptions().list(part="snippet", mine=True, maxResults=5)#50
         print(request)
         
         while request is not None:
@@ -60,6 +102,35 @@ def canales():
     # Recorrer la lista de objetos Canal y mostrarlos en la tabla
     for i, canal in enumerate(canales):
         tabla.insert("", "end", values=(canal.canal, canal.categoria))
+
+    #texto=str(selectItem[0])
+    
+    texto=tabla.bind('<ButtonRelease-1>', selectItem)  #texto=tabla.focus()
+    print (texto)
+    #texto=texto[2]
+    lbCanal=tk.Label(canales_frame, text="canal")#texto[0]
+    lbCanal.pack()
+    #textField=Text(canales_frame)
+    #textField.pack()
+    
+    BDeSuscribir = Button(canales_frame,text="De-suscribirse",command=deSuscribir)
+    BDeSuscribir.pack()
+
+    n = tk.StringVar()
+    cbCategoria = ttk.Combobox(canales_frame, width = 27, textvariable = n,state="readonly")
+    cbCategoria['values'] = ("No categorizado",' Entretenimiento',' Educacion',' Videojuegos')
+    cbCategoria.current()
+    cbCategoria.pack()#categoryChoosen.grid(column = 1, row = 4)
+
+    bEditar = Button(canales_frame,text="Editar",command=editar)
+    bEditar.pack()
+    
+
+    '''combo = ttk.Combobox(state="readonly",values=["Entretenimiento", "Educacion", "No categorizado","Videojuegos"])
+    combo.pack()#combo.place(x=50, y=50)
+    button = ttk.Button(canales_frame,text="Mostrar selección", command=show_selection)
+    button.pack()#button.place(x=50, y=100) '''
+
 
     canales_frame.pack(pady=20)
 
@@ -142,7 +213,7 @@ def suscribirse():
             tree.heading(col, text=col)
         for row in df.to_numpy().tolist():
             tree.insert("", "end", values=row)
-        tree.pack(side='left', fill='both', expand=True,pady=20)
+        tree.pack(expand=True,pady=20)#side='left', fill='both',
         return tree
     
     def on_search():
@@ -237,7 +308,7 @@ credentials = flow.run_local_server(port=0)
 youtube = build('youtube', 'v3', credentials=credentials)
 
 root = tk.Tk()
-root.geometry("700x600")
+root.geometry("1000x600")
 root.title("Nombre app")
 
 
@@ -271,7 +342,7 @@ main_frame = tk.Frame(root,highlightbackground="black", highlightthickness=2)
 
 main_frame.pack(side=tk.LEFT)
 main_frame.pack_propagate(False)
-main_frame.configure(width=600, height=700)
+main_frame.configure(width=1000, height=700)
 home()
 
 root.mainloop()
