@@ -46,12 +46,24 @@ def canales():
 
     def editar():
         # Get selected item to Edit
-        selected_item = tabla.selection()[1]
-        tabla.item(selected_item, text="blub", values=("foo", "bar"))
+        valores=selectItem()
+        tabla.item(valores, text="blub", values=("foo", "bar"))
+
+    def update_window():
+        # Procesar todos los eventos pendientes
+        canales_frame.update()
 
     def selectItem(a):
-        curItem = tabla.focus()
-        return (tabla.item(curItem))
+        item = tabla.selection()[0]
+        valor = tabla.item(item, "values")
+        print (valor)
+        update_window()
+        
+        cbCategoria.set(valor[1])
+        lbCanal.config(text=valor[0])
+        return valor
+        #curItem = tabla.focus()
+        #return (tabla.item(curItem,"values"))
 
     def obtener_canales_suscritos(yt):
         # Obtener los canales a los que está suscrito el usuario
@@ -86,10 +98,10 @@ def canales():
 
     #texto=str(selectItem[0])
     
-    texto=tabla.focus()  #tabla.bind('<ButtonRelease-1>', selectItem)
+    texto=tabla.bind('<ButtonRelease-1>', selectItem)  #texto=tabla.focus()
     print (texto)
     #texto=texto[2]
-    lbCanal=tk.Label(canales_frame, text="texto")#texto[0]
+    lbCanal=tk.Label(canales_frame, text="canal")#texto[0]
     lbCanal.pack()
     #textField=Text(canales_frame)
     #textField.pack()
@@ -105,6 +117,10 @@ def canales():
 
     bEditar = Button(canales_frame,text="Editar",command=editar)
     bEditar.pack()
+
+    button = tk.Button(root, text="Actualizar ventana")
+    button.pack()
+    button.config(command=update_window)
     
 
     '''combo = ttk.Combobox(state="readonly",values=["Entretenimiento", "Educacion", "No categorizado","Videojuegos"])
