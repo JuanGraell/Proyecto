@@ -45,9 +45,16 @@ def deSuscribir():
 def canales():
 
     def editar():
-        # Get selected item to Edit
-        valores=selectItem()
-        tabla.item(valores, text="blub", values=("foo", "bar"))
+        #valores = tabla.selection()[0]
+        '''texto=tabla.bind('<ButtonRelease-1>', selectItem)
+        item = tabla.selection()[0]
+        valores = tabla.item(item, "values")
+
+        tabla.item(valores, values=(texto[0],cbCategoria.get()))'''
+        item = tabla.selection()[0]
+        valor = tabla.item(item, "values")
+        print(item)
+        tabla.item(item, values=(valor[0], cbCategoria.get()))
 
     def update_window():
         # Procesar todos los eventos pendientes
@@ -117,10 +124,6 @@ def canales():
 
     bEditar = Button(canales_frame,text="Editar",command=editar)
     bEditar.pack()
-
-    button = tk.Button(root, text="Actualizar ventana")
-    button.pack()
-    button.config(command=update_window)
     
 
     '''combo = ttk.Combobox(state="readonly",values=["Entretenimiento", "Educacion", "No categorizado","Videojuegos"])
