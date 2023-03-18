@@ -37,7 +37,7 @@ def canales():
         item = tabla.selection()[0]
         valor = tabla.item(item, "values")
         print(item)
-        tabla.item(item, values=(valor[0], cbCategoria.get()))
+        tabla.item(item, values=(valor[0], cbCategoria.get(),valor[2]))
 
     def anular_subscripcion():
         selected_row = tabla.focus()
