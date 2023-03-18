@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "sixth-well-379622",
+  "private_key_id": "c08f28a07e7e8dc888db46c41c64178cb7778733",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDZx8wLmo1bIS3+\n0+FqaBicDqFbu5MgYE0EnlvAVUBG2b4rLhdnQyl0LMl9gew2ShYv8PMf7k6mz/NZ\nmD8t1nze9ScwetVwB/RVkAt0+BPYfEPsl/0yes/gJ665fKMS24YrFWt15Ve1XM5Z\neT4WcXiLuIBOwgi4ZB5w1UUuIcww1jIhii8qfmKxd4zVME1sAwfVN1yELx+moH7I\nxwf+5/A7GJAsUu0PJ2foEzFRgLbhYa+hDKdZgJeSdumyeCEDvk391d5gaTbPqy1h\ntnoDeoJVHd/Xf0V3jwjYgRuiINhzLWfN4TNBeRr3C70t5uqrAOVj9mJLzpGLZmps\n19oPG7j7AgMBAAECggEADHbyB8v9wTSB9G7eHP/+QJhZxe1Te2vnnJcPu09l0WhP\nCRunPULL0ZlqouNXyLeu02mgELjMCaInVH5xR0daeExhxNWS98mMw4TuEvDL+f0K\nyjTcyhHbagH7byRiFQc5g6fDMclBnuDD8r0Mv64Y7y5NMbTLWPpp/51FS2Gl1Tmi\nMa8sKMqeh3AvsU0LZZ1ViD1R8HeKrx37r1cz7WJYl3SkSvYux4Vt/okRHJwqPKPS\nMqizYmArkknkHZE4/Asc3caYxzk5MBY04HZhyLJOf0kF+Fa9i/7KbwhqdgP9z726\nXjGEDRBp/RCqKrcamDzRvpP3eJLdTc/RjwliZ9jpUQKBgQD2B1e2OYHxdE0z4Td1\noDqGdYc0H+i8/B4X52W2Ri5DITuwiQ4oEKdwlV9bE6L2Dz11LBBgTBu/yYzdta4v\nE19on2JFpr7QvWOGeaCaq5U+exeX9OtYBXSRbuGgvJQ6KV0VBGRhMLyXbOctHWlS\n1UlrZ5vFmAHf6BO7e+HzmvGc8wKBgQDim13SJQGs89FXsPhRTTNfWM4bTXJ2r6aW\nSn2OSUHD6Ngufed91MkpWgA7IoxGZXxqm42B4JXH2gNW5JsWxmQoQpMW7c6tx4VZ\n4GyH+t3hiJGO+apjmhLuClu+bucPMIZnIWZIKfTiKuRBwesK4OGWSCEkwL5wNbUj\n/0vubEtV2QKBgHDnH7ZNH7epcoBbWzMMi68GojwmZIzNehXoJ8IE5NgDmTvDOY7j\nTaOZuL+3/DHE/qQVy5IVeyqBGLbp1/xcfI0rj1J9WdW7A8BDcpNoKD4bCNHAIHwt\nTLgs1TgJMlCaiM/LSzFax0EKRfBrLdlIbb/vNQnxXvLcsql4CVHcigJHAoGBAKbg\n8fPbCuPaXnVsv0HoT4fM92PF4iCjdFPDobkSG9txcxqx37Ob61SHkhn6dEE3ZauA\nyHI3+TXHSKRKEChyi7nWZUoCcS0q/PpWOrbdOV9o2oDnPeLByWUBvdR9Ca3291Ol\nlhRYyZ1xJs2CSFynhZnNnpLZWqV59979mGaJ2+TpAoGBAOHWCBHkzaPOD6DjrT/e\n7le6GJzDgtVRBmf8xx99514awJdA3dKNNA7jkOPLnT5LOFIAdfXIyjfZ+qdslONx\nWhmZIAXQT6/EOvy2LYuET+Z+UHXlortbZwkWrTXBhi/6r6xAShpPKwbx9GiIPCBE\nrKKC0iJk4uWrWQMWef/IVgUo\n-----END PRIVATE KEY-----\n",
+  "client_email": "credentials@sixth-well-379622.iam.gserviceaccount.com",
+  "client_id": "113756380226596456969",
+  "scope": "https://www.googleapis.com/auth/youtube.force-ssl https://www.googleapis.com/auth/youtube.readonly",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/credentials%40sixth-well-379622.iam.gserviceaccount.com"
+}
