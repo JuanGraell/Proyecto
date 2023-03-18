@@ -48,7 +48,7 @@ def canales():
             subs = youtube.subscriptions().list(
                 part='id,snippet',
                 mine=True,
-                maxResults=5
+                maxResults=500
             ).execute()
 
             subscription_id = None
