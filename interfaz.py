@@ -1,4 +1,7 @@
 import tkinter as tk
+import pandas as pd
+from sqlalchemy import create_engine
+import sqlite3
 from tkinter import *
 from tkinter import ttk,messagebox
 import google.oauth2.credentials
@@ -9,7 +12,7 @@ from googleapiclient.errors import HttpError
 
 #pip install pandas
 #pip install sqlalchemy
-#pip install pysqlite3 
+#pip install db-sqlite3
 
 class Canal:
     def __init__(self, id_canal, canal, categoria="No categorizado"):
