@@ -7,6 +7,10 @@ from googleapiclient.discovery import build
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
+#pip install pandas
+#pip install sqlalchemy
+#pip install pysqlite3 
+
 class Canal:
     def __init__(self, id_canal, canal, categoria="No categorizado"):
         self.id_canal = id_canal
@@ -36,7 +40,6 @@ def canales():
     def editar():
         item = tabla.selection()[0]
         valor = tabla.item(item, "values")
-        print(item)
         tabla.item(item, values=(valor[0], cbCategoria.get(),valor[2]))
 
     def anular_subscripcion():
@@ -73,18 +76,7 @@ def canales():
     def selectItem(a):
         item = tabla.selection()[0]
         valor = tabla.item(item, "values")
-        print (valor)
         root.update()
-        cbCategoria.set(valor[1])
-        lbCanal.config(text=valor[0])
-        return valor
-
-    def selectItem(a):
-        item = tabla.selection()[0]
-        valor = tabla.item(item, "values")
-        print (valor)
-        root.update()
-        
         cbCategoria.set(valor[1])
         lbCanal.config(text=valor[0])
         return valor
@@ -120,7 +112,6 @@ def canales():
 
     
     texto=tabla.bind('<ButtonRelease-1>', selectItem)
-    print (texto)
     lbCanal=tk.Label(canales_frame, text="canal")
     lbCanal.pack()
 
