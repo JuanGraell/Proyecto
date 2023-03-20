@@ -33,6 +33,7 @@ def hide_indicate():
     cerrar_button_indicate.config(bg="#c3c3c3")
 
 def home():
+    
     home_frame = tk.Frame(main_frame)
     lb=tk.Label(home_frame,text="Apartado Home",font=("Bold",30))
     lb.pack()
@@ -204,8 +205,34 @@ def limpiarFrame():
     for frame in main_frame.winfo_children():
         frame.destroy()
 
+def cerrar():
+    conn.close()
+    root.quit()
+
 CLIENT_SECRETS_FILE = "client_secret.json"
 SCOPES = ['https://www.googleapis.com/auth/youtube.force-ssl']
+
+conn = sqlite3.connect('base_datos_tubetag.sqlite')
+
+cur = conn.cursor()
+
+try:
+    cur.execute("SELECT * FROM usuarios")
+except:
+    conn.execute('''CREATE TABLE usuarios
+                (ID_USUARIO INT PRIMARY KEY     NOT NULL,
+                NOMBRE_USUARIO           TEXT    NOT NULL);''')
+
+    conn.execute('''CREATE TABLE subscripciones
+                (ID_SUBSCRIPCION TEXT PRIMARY KEY     NOT NULL,
+                NOMBRE           TEXT    NOT NULL,
+                ID_CATEGORIA             TEXT     NOT NULL,
+                ID_USUARIOS INT NOT NULL);''')
+
+    conn.execute('''CREATE TABLE categorias
+                (ID_CATEGORIA INT PRIMARY KEY NOT NULL,
+                CATEGORIA TEXT NOT NULL,
+                ID_USUARIOS TEXT NOT NULL);''')
 
 flow = google_auth_oauthlib.flow.InstalledAppFlow.from_client_secrets_file(CLIENT_SECRETS_FILE, SCOPES)
 credentials = flow.run_local_server(port=0)
@@ -234,7 +261,7 @@ suscribirse_button.place(x=8,y=150)
 suscribirse_button_indicate=tk.Label(options_frame,text="",bg="#c3c3c3")
 suscribirse_button_indicate.place(x=3,y=150,width=5,height=40)
 
-cerrar_button=tk.Button(options_frame,text="Cerrar",font=("bold",15),fg="#158aff",bd=0,bg="#c3c3c3",command=root.quit)
+cerrar_button=tk.Button(options_frame,text="Cerrar",font=("bold",15),fg="#158aff",bd=0,bg="#c3c3c3",command=cerrar)
 cerrar_button.place(x=8,y=200)
 cerrar_button_indicate=tk.Label(options_frame,text="",bg="#c3c3c3")
 cerrar_button_indicate.place(x=3,y=200,width=5,height=40)
