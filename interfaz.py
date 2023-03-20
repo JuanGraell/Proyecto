@@ -84,26 +84,10 @@ def canales():
         cbCategoria.set(valor[1])
         lbCanal.config(text=valor[0])
         return valor
-
-    def obtener_canales_suscritos(yt):
-        canales = []
-        request = yt.subscriptions().list(part="snippet", mine=True, maxResults=50)#
-        print(request)
-        
-        while request is not None:
-            response = request.execute()
-            for item in response['items']:
-                canal_id = item['snippet']['resourceId']['channelId']
-                canal_nombre = item['snippet']['title']
-                canales.append(Canal(canal_id, canal_nombre))
-            request = yt.subscriptions().list_next(request, response)
-        return canales
-
+    
     canales_frame = tk.Frame(main_frame)
     lb = tk.Label(canales_frame, text="Apartado Canales", font=("Bold", 30))
     lb.pack()
-
-    canales = obtener_canales_suscritos(youtube)
 
     tabla = ttk.Treeview(canales_frame, columns=("Canal", "Categoría", "ID"), show="headings")
     tabla.heading("Canal", text="Canal")
@@ -111,7 +95,7 @@ def canales():
     tabla.heading("ID", text="ID")
     tabla.pack()
 
-    for i, canal in enumerate(canales):
+    for i, canal in enumerate(subscripciones):
         tabla.insert("", "end", values=(canal.canal, canal.categoria, canal.id_canal))
 
     
@@ -212,6 +196,21 @@ def cerrar():
 CLIENT_SECRETS_FILE = "client_secret.json"
 SCOPES = ['https://www.googleapis.com/auth/youtube.force-ssl']
 
+def obtener_canales_suscritos(yt):
+    subscripciones = []
+    request = yt.subscriptions().list(part="snippet", mine=True, maxResults=50)#
+    print(request)
+    
+    while request is not None:
+        response = request.execute()
+        for item in response['items']:
+            canal_id = item['snippet']['resourceId']['channelId']
+            canal_nombre = item['snippet']['title']
+            subscripciones.append(Canal(canal_id, canal_nombre))
+        request = yt.subscriptions().list_next(request, response)
+    return subscripciones
+
+
 conn = sqlite3.connect('base_datos_tubetag.sqlite')
 
 cur = conn.cursor()
@@ -220,24 +219,45 @@ try:
     cur.execute("SELECT * FROM usuarios")
 except:
     conn.execute('''CREATE TABLE usuarios
-                (ID_USUARIO INT PRIMARY KEY     NOT NULL,
+                (ID_USUARIO INT PRIMARY KEY,
                 NOMBRE_USUARIO           TEXT    NOT NULL);''')
 
     conn.execute('''CREATE TABLE subscripciones
-                (ID_SUBSCRIPCION TEXT PRIMARY KEY     NOT NULL,
+                (ID_SUBSCRIPCION TEXT PRIMARY KEY,
                 NOMBRE           TEXT    NOT NULL,
                 ID_CATEGORIA             TEXT     NOT NULL,
                 ID_USUARIOS INT NOT NULL);''')
 
     conn.execute('''CREATE TABLE categorias
-                (ID_CATEGORIA INT PRIMARY KEY NOT NULL,
+                (ID_CATEGORIA INT PRIMARY KEY,
                 CATEGORIA TEXT NOT NULL,
-                ID_USUARIOS TEXT NOT NULL);''')
+                ID_USUARIOS TEXT );''')
+    
+    categoriasDefecto=("No categorizado","NULL")
+    cur.execute("INSERT INTO categorias ( CATEGORIA, ID_USUARIOS)  VALUES ( ?, ?)", categoriasDefecto)
+    conn.commit()
+    categoriasDefecto=("Entretenimiento","NULL")
+    cur.execute("INSERT INTO categorias ( CATEGORIA, ID_USUARIOS)  VALUES ( ?, ?)", categoriasDefecto)
+    conn.commit()
+    categoriasDefecto=("Educacion","NULL")
+    cur.execute("INSERT INTO categorias ( CATEGORIA, ID_USUARIOS)  VALUES ( ?, ?)", categoriasDefecto)
+    conn.commit()
+    categoriasDefecto=("Videojuegos","NULL")
+    cur.execute("INSERT INTO categorias ( CATEGORIA, ID_USUARIOS)  VALUES ( ?, ?)", categoriasDefecto)
+    conn.commit()
+
+
+
+
 
 flow = google_auth_oauthlib.flow.InstalledAppFlow.from_client_secrets_file(CLIENT_SECRETS_FILE, SCOPES)
 credentials = flow.run_local_server(port=0)
 
 youtube = build('youtube', 'v3', credentials=credentials)
+
+subscripciones = obtener_canales_suscritos(youtube)
+
+channels_response = youtube.channels().list(mine=True,part='id').execute()
 
 root = tk.Tk()
 root.geometry("1000x600")
