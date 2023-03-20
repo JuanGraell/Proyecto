@@ -1,3 +1,6 @@
+#instalar pip install pandas
+#instalar pip install sqlalchemy
+#instalar pip install db-sqlite3
 import tkinter as tk
 import pandas as pd
 from sqlalchemy import create_engine
@@ -9,10 +12,6 @@ import google_auth_oauthlib.flow
 from googleapiclient.discovery import build
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
-
-#pip install pandas
-#pip install sqlalchemy
-#pip install db-sqlite3
 
 class Canal:
     def __init__(self, id_canal, canal, categoria="No categorizado"):
@@ -41,16 +40,29 @@ def home():
 
 def canales():
 
-    def editar():
+    def editar_canal():
         item = tabla.selection()[0]
         valor = tabla.item(item, "values")
+        nueva_categoria=cbCategoria.get()
+        nueva_categoria_tupla=(nueva_categoria,)
+        cur=conn.execute("SELECT id_categoria FROM categorias WHERE categoria LIKE ? ",nueva_categoria_tupla)
+        id_nueva_categoria = cur.fetchone()
+        
+
+        id_subscripcion_tupla=(valor[2],)
+        cur=conn.execute("SELECT id_subscripcion FROM subscripciones WHERE id_subscripcion LIKE ? ",id_subscripcion_tupla)
+        id_subscripcion = cur.fetchone()
+
+        cur.execute("UPDATE subscripciones SET id_categoria_sub = ? WHERE id_subscripcion = ?", (id_nueva_categoria[0], id_subscripcion[0]))
+        conn.commit()
         tabla.item(item, values=(valor[0], cbCategoria.get(),valor[2]))
+        root.update()
 
     def anular_subscripcion():
         selected_row = tabla.focus()
         if selected_row:
             channel_id = tabla.item(selected_row)['values'][2]
-            print(channel_id)
+            #print(channel_id)
             
             subs = youtube.subscriptions().list(
                 part='id,snippet',
@@ -70,12 +82,15 @@ def canales():
                 ).execute()
                 messagebox.showinfo("Éxito", "Se anuló la suscripción al canal.")
                 tabla.delete(selected_row)
+                print(channel_id)
+                cur.execute("DELETE FROM subscripciones WHERE id_subscripcion = ?", (channel_id,))
+                conn.commit()
+
+
             else:
                 messagebox.showwarning("Advertencia", "No se ha encontrado la suscripción a este canal.")
         else:
             messagebox.showwarning("Advertencia", "No se ha seleccionado canal para anular suscripción.")
-
-            
 
     def selectItem(a):
         item = tabla.selection()[0]
@@ -96,6 +111,11 @@ def canales():
     tabla.pack()
 
     for i, canal in enumerate(subscripciones):
+        
+        '''nombre_canal=
+        categoria=
+        id_canal='''
+        
         tabla.insert("", "end", values=(canal.canal, canal.categoria, canal.id_canal))
 
     
@@ -103,7 +123,7 @@ def canales():
     lbCanal=tk.Label(canales_frame, text="canal")
     lbCanal.pack()
 
-    bEditar = Button(canales_frame,text="Editar",command=editar)
+    bEditar = Button(canales_frame,text="Editar",command=editar_canal)
     bEditar.pack()
 
     bAnular = tk.Button(canales_frame, text="Anular suscripción", command=anular_subscripcion)
@@ -111,7 +131,7 @@ def canales():
 
     n = tk.StringVar()
     cbCategoria = ttk.Combobox(canales_frame, width = 27, textvariable = n,state="readonly")
-    cbCategoria['values'] = ("No categorizado",' Entretenimiento',' Educacion',' Videojuegos')
+    cbCategoria['values'] = ("No categorizado",'Entretenimiento','Educacion','Videojuegos')
     cbCategoria.current(0)
     cbCategoria.pack()
     canales_frame.pack(pady=20)
@@ -193,9 +213,6 @@ def cerrar():
     conn.close()
     root.quit()
 
-CLIENT_SECRETS_FILE = "client_secret.json"
-SCOPES = ['https://www.googleapis.com/auth/youtube.force-ssl']
-
 def obtener_canales_suscritos(yt):
     subscripciones = []
     request = yt.subscriptions().list(part="snippet", mine=True, maxResults=50)#
@@ -224,13 +241,15 @@ def obtener_canales_suscritos(yt):
             print(type(resultadoCanal))   '''
             
             if not resultadoCanal :
-                conn.execute("INSERT INTO subscripciones (id_subscripcion,nombre,id_categoria,id_usuario) VALUES (?,?,?,?)", (canal_id,canal_nombre,1,1))
+                conn.execute("INSERT INTO subscripciones (id_subscripcion,nombre,id_categoria_sub,id_usuario_sub) VALUES (?,?,?,?)", (canal_id,canal_nombre,1,1))
                 print("ingresado")
                 conn.commit()
 
         request = yt.subscriptions().list_next(request, response)
     return subscripciones
 
+CLIENT_SECRETS_FILE = "client_secret.json"
+SCOPES = ['https://www.googleapis.com/auth/youtube.force-ssl']
 
 conn = sqlite3.connect('base_datos_TubeTag.sqlite')
 
@@ -240,17 +259,17 @@ try:
     cur.execute("SELECT * FROM usuarios")
 except:
     conn.execute('''CREATE TABLE usuarios
-                (id_usuario INT PRIMARY KEY,
+                (id_usuario INTEGER PRIMARY KEY AUTOINCREMENT,
                 nombre_usuario           TEXT    NOT NULL);''')
 
     conn.execute('''CREATE TABLE subscripciones
                 (id_subscripcion TEXT PRIMARY KEY,
                 nombre           TEXT    NOT NULL,
-                id_categoria             TEXT     NOT NULL,
-                id_usuario INT NOT NULL);''')
+                id_categoria_sub             TEXT     NOT NULL,
+                id_usuario_sub INT NOT NULL);''')
 
     conn.execute('''CREATE TABLE categorias
-                (id_categoria INT PRIMARY KEY,
+                (id_categoria INTEGER PRIMARY KEY AUTOINCREMENT,
                 categoria TEXT NOT NULL,
                 id_usuario TEXT );''')
     
@@ -284,8 +303,8 @@ if resultado is None:
     # Insertar la fila en la tabla
     conn.execute("INSERT INTO usuarios (nombre_usuario) VALUES (?)", usuarioPrincipal)
     conn.commit()
-
 subscripciones = obtener_canales_suscritos(youtube)
+
 
 channels_response = youtube.channels().list(mine=True,part='id').execute()
 
