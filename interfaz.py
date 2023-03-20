@@ -199,19 +199,40 @@ SCOPES = ['https://www.googleapis.com/auth/youtube.force-ssl']
 def obtener_canales_suscritos(yt):
     subscripciones = []
     request = yt.subscriptions().list(part="snippet", mine=True, maxResults=50)#
-    print(request)
     
     while request is not None:
         response = request.execute()
         for item in response['items']:
             canal_id = item['snippet']['resourceId']['channelId']
+            
+            
             canal_nombre = item['snippet']['title']
+            
             subscripciones.append(Canal(canal_id, canal_nombre))
+
+            canal_id_tupla=(canal_id,)
+            
+            cur=conn.execute("SELECT nombre_usuario FROM usuarios WHERE nombre_usuario LIKE ? ",usuarioPrincipal)
+            resultado = cur.fetchall()
+               
+            
+            cur=conn.execute("SELECT id_subscripcion FROM subscripciones WHERE id_subscripcion= ? ",canal_id_tupla)
+            resultadoCanal = cur.fetchall()
+            '''print(cur)
+            print(type(cur))
+            print(resultadoCanal)==[('UC0a7hih_igJwzjHE4KsX8hQ',)]
+            print(type(resultadoCanal))   '''
+            
+            if not resultadoCanal :
+                conn.execute("INSERT INTO subscripciones (id_subscripcion,nombre,id_categoria,id_usuario) VALUES (?,?,?,?)", (canal_id,canal_nombre,1,1))
+                print("ingresado")
+                conn.commit()
+
         request = yt.subscriptions().list_next(request, response)
     return subscripciones
 
 
-conn = sqlite3.connect('base_datos_tubetag.sqlite')
+conn = sqlite3.connect('base_datos_TubeTag.sqlite')
 
 cur = conn.cursor()
 
@@ -219,35 +240,32 @@ try:
     cur.execute("SELECT * FROM usuarios")
 except:
     conn.execute('''CREATE TABLE usuarios
-                (ID_USUARIO INT PRIMARY KEY,
-                NOMBRE_USUARIO           TEXT    NOT NULL);''')
+                (id_usuario INT PRIMARY KEY,
+                nombre_usuario           TEXT    NOT NULL);''')
 
     conn.execute('''CREATE TABLE subscripciones
-                (ID_SUBSCRIPCION TEXT PRIMARY KEY,
-                NOMBRE           TEXT    NOT NULL,
-                ID_CATEGORIA             TEXT     NOT NULL,
-                ID_USUARIOS INT NOT NULL);''')
+                (id_subscripcion TEXT PRIMARY KEY,
+                nombre           TEXT    NOT NULL,
+                id_categoria             TEXT     NOT NULL,
+                id_usuario INT NOT NULL);''')
 
     conn.execute('''CREATE TABLE categorias
-                (ID_CATEGORIA INT PRIMARY KEY,
-                CATEGORIA TEXT NOT NULL,
-                ID_USUARIOS TEXT );''')
+                (id_categoria INT PRIMARY KEY,
+                categoria TEXT NOT NULL,
+                id_usuario TEXT );''')
     
     categoriasDefecto=("No categorizado","NULL")
-    cur.execute("INSERT INTO categorias ( CATEGORIA, ID_USUARIOS)  VALUES ( ?, ?)", categoriasDefecto)
+    cur.execute("INSERT INTO categorias ( categoria, id_usuario)  VALUES ( ?, ?)", categoriasDefecto)
     conn.commit()
     categoriasDefecto=("Entretenimiento","NULL")
-    cur.execute("INSERT INTO categorias ( CATEGORIA, ID_USUARIOS)  VALUES ( ?, ?)", categoriasDefecto)
+    cur.execute("INSERT INTO categorias ( categoria, id_usuario)  VALUES ( ?, ?)", categoriasDefecto)
     conn.commit()
     categoriasDefecto=("Educacion","NULL")
-    cur.execute("INSERT INTO categorias ( CATEGORIA, ID_USUARIOS)  VALUES ( ?, ?)", categoriasDefecto)
+    cur.execute("INSERT INTO categorias ( categoria, id_usuario)  VALUES ( ?, ?)", categoriasDefecto)
     conn.commit()
     categoriasDefecto=("Videojuegos","NULL")
-    cur.execute("INSERT INTO categorias ( CATEGORIA, ID_USUARIOS)  VALUES ( ?, ?)", categoriasDefecto)
+    cur.execute("INSERT INTO categorias ( categoria, id_usuario)  VALUES ( ?, ?)", categoriasDefecto)
     conn.commit()
-
-
-
 
 
 flow = google_auth_oauthlib.flow.InstalledAppFlow.from_client_secrets_file(CLIENT_SECRETS_FILE, SCOPES)
@@ -255,9 +273,24 @@ credentials = flow.run_local_server(port=0)
 
 youtube = build('youtube', 'v3', credentials=credentials)
 
+channels_response = youtube.channels().list(mine=True,part='id').execute()
+usuarioPrincipal = channels_response['items'][0]['id']
+usuarioPrincipal=(usuarioPrincipal,)
+
+cur=conn.execute("SELECT nombre_usuario FROM usuarios WHERE nombre_usuario LIKE ? ",usuarioPrincipal)
+resultado = cur.fetchone()
+
+if resultado is None:
+    # Insertar la fila en la tabla
+    conn.execute("INSERT INTO usuarios (nombre_usuario) VALUES (?)", usuarioPrincipal)
+    conn.commit()
+
 subscripciones = obtener_canales_suscritos(youtube)
 
 channels_response = youtube.channels().list(mine=True,part='id').execute()
+
+
+
 
 root = tk.Tk()
 root.geometry("1000x600")
