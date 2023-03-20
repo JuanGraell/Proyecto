@@ -219,9 +219,9 @@ root.title("TubeTag")
 root.iconphoto(False,tk.PhotoImage(file="icon.png"))
 
 img_home = tk.PhotoImage(file="logo.png",)
-img_home = img_home.zoom(1.5,1.5)
+#img_home = img_home.zoom(1.5,1.5)
 img_options = tk.PhotoImage(file="logo.png")
-#img_options = img_options.subsample(2,2)
+img_options = img_options.subsample(5,5)
 
 
 options_frame = tk.Frame(root, bg="#c3c3c3")
