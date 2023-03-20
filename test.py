@@ -3,22 +3,26 @@ from sqlalchemy import create_engine
 import sqlite3
 
 # Conectar a la base de datos (se crea automáticamente si no existe)
-conn = sqlite3.connect('mi_base_de_datos.sqlite')
-
+conn = sqlite3.connect('base_datos_tubetag.sqlite')
 
 # Crear una tabla en la base de datos
 conn.execute('''CREATE TABLE usuarios
-             (ID INT PRIMARY KEY     NOT NULL,
+             (ID_USUARIO INT PRIMARY KEY     NOT NULL,
+             NOMBRE_USUARIO           TEXT    NOT NULL);''')
+
+conn.execute('''CREATE TABLE subscripciones
+             (ID_SUBSCRIPCION TEXT PRIMARY KEY     NOT NULL,
              NOMBRE           TEXT    NOT NULL,
-             EDAD             INT     NOT NULL,
-             CIUDAD           TEXT    NOT NULL);''')
+             ID_CATEGORIA             TEXT     NOT NULL,
+             ID_USUARIOS INT NOT NULL);''')
 
+conn.execute('''CREATE TABLE categorias
+             (ID_CATEGORIA INT PRIMARY KEY NOT NULL,
+             CATEGORIA TEXT NOT NULL,
+             ID_USUARIOS TEXT NOT NULL);''')
 
-engine = create_engine('sqlite:///mi_base_de_datos.sqlite', echo=False)
-
-df = pd.read_sql_query("SELECT * FROM mi_tabla", conn)
-
-df.to_sql('mi_tabla', engine, if_exists='replace', index=False)
+#id primary key, nombre canal, categorizacion
 
 # Cerrar la conexión a la base de datos
+
 conn.close()
