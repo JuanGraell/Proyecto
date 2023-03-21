@@ -149,6 +149,7 @@ def suscribirse():
             nombre_canal = item['snippet']['title']
             descripcion_canal = item['snippet']['description']
             tabla.insert("",tk.END,text=str(nombre_canal), values=(str(descripcion_canal),str(id_canal)))
+            
     def suscribirse_acc():
         item = tabla.selection()[0]
         valor = tabla.item(item, "values")
