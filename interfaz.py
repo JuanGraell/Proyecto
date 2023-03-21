@@ -143,9 +143,8 @@ def canales():
     id_usuario = cur.fetchone()
     cur=conn.execute("select nombre,categoria,id_subscripcion from (subscripciones inner	join categorias on subscripciones.id_categoria_sub=categorias.id_categoria ) where id_usuario_sub=?",id_usuario)
     id_canal = cur.fetchall()
-    for i in id_canal:
-        
-    tabla.insert("", "end", values=i)
+    for i in id_canal:  
+        tabla.insert("", "end", values=i)
 
     
     texto=tabla.bind('<ButtonRelease-1>', selectItem)
