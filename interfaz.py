@@ -109,14 +109,13 @@ def canales():
     tabla.heading("Categoría", text="Categoría")
     tabla.heading("ID", text="ID")
     tabla.pack()
-
-    for i, canal in enumerate(subscripciones):
+    cur=conn.execute("SELECT id_usuario FROM usuarios WHERE nombre_usuario LIKE ? ",usuarioPrincipal)
+    id_usuario = cur.fetchone()
+    cur=conn.execute("select nombre,categoria,id_subscripcion from (subscripciones inner	join categorias on subscripciones.id_categoria_sub=categorias.id_categoria ) where id_usuario_sub=?",id_usuario)
+    id_canal = cur.fetchall()
+    for i in id_canal:
         
-        '''nombre_canal=
-        categoria=
-        id_canal='''
-        
-        tabla.insert("", "end", values=(canal.canal, canal.categoria, canal.id_canal))
+        tabla.insert("", "end", values=i)
 
     
     texto=tabla.bind('<ButtonRelease-1>', selectItem)
@@ -156,6 +155,11 @@ def suscribirse():
     def suscribirse_acc():
         item = tabla.selection()[0]
         valor = tabla.item(item, "values")
+        nombre=tabla.item(item, "text")
+        print(valor)
+        print(nombre)
+        cur=conn.execute("SELECT id_usuario FROM usuarios WHERE nombre_usuario LIKE ? ",usuarioPrincipal)
+        id_usuario = cur.fetchall()
         try:
             response = youtube.subscriptions().insert(
                 part='snippet',
@@ -170,6 +174,9 @@ def suscribirse():
             ).execute()
             messagebox.showinfo("Éxito", "Se ha suscrito el canal a su cuenta")
             print(f"Se ha suscrito al canal '{valor[0]}' en YouTube.")
+            cur.execute("INSERT INTO subscripciones (id_subscripcion, nombre, id_categoria_sub, id_usuario_sub) VALUES (?, ?, ?, ?)", (valor[1],nombre, 1, id_usuario[0][0]))
+            conn.commit()
+
         except HttpError as e:
             print(f"Error al suscribirse al canal '{valor[0]}' en YouTube: {e}")
             messagebox.showerror("Error", f"No se ha podido suscribir al canal {valor[0]}")
@@ -235,16 +242,14 @@ def obtener_canales_suscritos(yt):
             
             cur=conn.execute("SELECT id_subscripcion FROM subscripciones WHERE id_subscripcion= ? ",canal_id_tupla)
             resultadoCanal = cur.fetchall()
-            '''print(cur)
-            print(type(cur))
-            print(resultadoCanal)==[('UC0a7hih_igJwzjHE4KsX8hQ',)]
-            print(type(resultadoCanal))   '''
+
+            cur=conn.execute("SELECT id_usuario FROM usuarios WHERE nombre_usuario LIKE ? ",usuarioPrincipal)
+            id_usuario = cur.fetchall()
             
             if not resultadoCanal :
-                conn.execute("INSERT INTO subscripciones (id_subscripcion,nombre,id_categoria_sub,id_usuario_sub) VALUES (?,?,?,?)", (canal_id,canal_nombre,1,1))
-                print("ingresado")
+                conn.execute("INSERT INTO subscripciones (id_subscripcion,nombre,id_categoria_sub,id_usuario_sub) VALUES (?,?,?,?)", (canal_id,canal_nombre,1,id_usuario[0][0]))
                 conn.commit()
-
+                print("ingresado")
         request = yt.subscriptions().list_next(request, response)
     return subscripciones
 
