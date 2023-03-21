@@ -1,6 +1,10 @@
 #instalar pip install pandas
 #instalar pip install sqlalchemy
 #instalar pip install db-sqlite3
+#pip install google-auth-oauthlib
+#pip install google-api-python-client
+#pip install tk
+
 import tkinter as tk
 import pandas as pd
 from sqlalchemy import create_engine
@@ -34,8 +38,10 @@ def hide_indicate():
 def home():
     
     home_frame = tk.Frame(main_frame)
-    lb=tk.Label(home_frame,text="Apartado Home",font=("Bold",30))
+    lb=tk.Label(home_frame,text="Home",font=("Bold",30))
     lb.pack()
+    imgLabel = tk.Label(home_frame,image=img_home)
+    imgLabel.pack()
     home_frame.pack(pady=20)
 
 def canales():
@@ -124,13 +130,14 @@ def canales():
         return valor
     
     canales_frame = tk.Frame(main_frame)
-    lb = tk.Label(canales_frame, text="Apartado Canales", font=("Bold", 30))
+    lb = tk.Label(canales_frame, text="Canales Suscritos", font=("Bold", 30))
     lb.pack()
 
     tabla = ttk.Treeview(canales_frame, columns=("Canal", "Categoría", "ID"), show="headings")
     tabla.heading("Canal", text="Canal")
     tabla.heading("Categoría", text="Categoría")
     tabla.heading("ID", text="ID")
+
     tabla.pack()
     cur=conn.execute("SELECT id_usuario FROM usuarios WHERE nombre_usuario LIKE ? ",usuarioPrincipal)
     id_usuario = cur.fetchone()
@@ -138,18 +145,18 @@ def canales():
     id_canal = cur.fetchall()
     for i in id_canal:
         
-        tabla.insert("", "end", values=i)
+    tabla.insert("", "end", values=i)
 
     
     texto=tabla.bind('<ButtonRelease-1>', selectItem)
-    lbCanal=tk.Label(canales_frame, text="canal")
-    lbCanal.pack()
 
+    lbCanal=tk.Label(canales_frame, text="No se ha seleccionado un canal.")
+    lbCanal.pack()
     bEditar = Button(canales_frame,text="Editar",command=editar_canal)
     bEditar.pack()
 
     bAnular = tk.Button(canales_frame, text="Anular suscripción", command=anular_subscripcion)
-    bAnular.pack()
+    bAnular.pack(pady=5)
 
     n = tk.StringVar()
 
@@ -160,6 +167,7 @@ def canales():
     cbCategoria = ttk.Combobox(canales_frame, width = 27, textvariable = n,state="readonly")
     cbCategoria['values'] = (cats)#"No categorizado",'Entretenimiento','Educacion','Videojuegos'
     cbCategoria.current(0)
+
     cbCategoria.pack()
 
     tFieldCategoria=ttk.Entry(canales_frame, textvariable="Nueva categoria")
@@ -187,6 +195,7 @@ def suscribirse():
             nombre_canal = item['snippet']['title']
             descripcion_canal = item['snippet']['description']
             tabla.insert("",tk.END,text=str(nombre_canal), values=(str(descripcion_canal),str(id_canal)))
+            
     def suscribirse_acc():
         item = tabla.selection()[0]
         valor = tabla.item(item, "values")
@@ -218,7 +227,7 @@ def suscribirse():
 
         
     suscribirse_frame=tk.Frame(main_frame)
-    lb=tk.Label(suscribirse_frame,text="Apartado suscribirse",font=("Bold",30))
+    lb=tk.Label(suscribirse_frame,text="Buscar canales",font=("Bold",30))
     lb.pack()
 
     search_label = tk.Label(suscribirse_frame, text="Término de búsqueda:")
@@ -353,30 +362,40 @@ channels_response = youtube.channels().list(mine=True,part='id').execute()
 
 root = tk.Tk()
 root.geometry("1000x600")
-root.title("Nombre app")
+root.title("TubeTag")
+root.iconphoto(False,tk.PhotoImage(file="icon.png"))
+
+img_home = tk.PhotoImage(file="logo.png",)
+#img_home = img_home.zoom(1.5,1.5)
+img_options = tk.PhotoImage(file="logo.png")
+img_options = img_options.subsample(5,5)
 
 
 options_frame = tk.Frame(root, bg="#c3c3c3")
 
+image_frame = tk.Label(options_frame,image=img_options,bg="#c3c3c3")
+image_frame.place(x=2,y=-25)
+
 home_button=tk.Button(options_frame,text="Home",font=("bold",15),fg="#158aff",bd=0,bg="#c3c3c3",command=lambda: indicate(home_button_indicate,home))
-home_button.place(x=8,y=50)
+home_button.place(x=8,y=90)
 home_button_indicate=tk.Label(options_frame,text="",bg="#158aff")
-home_button_indicate.place(x=3,y=50,width=5,height=40)
+home_button_indicate.place(x=3,y=90,width=5,height=40)
 
 canales_button=tk.Button(options_frame,text="Canales",font=("bold",15),fg="#158aff",bd=0,bg="#c3c3c3",command=lambda: indicate(canales_button_indicate,canales))
-canales_button.place(x=8,y=100)
+canales_button.place(x=8,y=140)
 canales_button_indicate=tk.Label(options_frame,text="",bg="#c3c3c3")
-canales_button_indicate.place(x=3,y=100,width=5,height=40)
+canales_button_indicate.place(x=3,y=140,width=5,height=40)
 
 suscribirse_button=tk.Button(options_frame,text="Suscribir",font=("bold",15),fg="#158aff",bd=0,bg="#c3c3c3",command=lambda: indicate(suscribirse_button_indicate,suscribirse))
-suscribirse_button.place(x=8,y=150)
+suscribirse_button.place(x=8,y=190)
 suscribirse_button_indicate=tk.Label(options_frame,text="",bg="#c3c3c3")
-suscribirse_button_indicate.place(x=3,y=150,width=5,height=40)
+suscribirse_button_indicate.place(x=3,y=190,width=5,height=40)
 
-cerrar_button=tk.Button(options_frame,text="Cerrar",font=("bold",15),fg="#158aff",bd=0,bg="#c3c3c3",command=cerrar)
-cerrar_button.place(x=8,y=200)
+cerrar_button=tk.Button(options_frame,text="Cerrar",font=("bold",15),fg="#158aff",bd=0,bg="#c3c3c3",command=root.quit)
+cerrar_button.place(x=8,y=240)
+
 cerrar_button_indicate=tk.Label(options_frame,text="",bg="#c3c3c3")
-cerrar_button_indicate.place(x=3,y=200,width=5,height=40)
+cerrar_button_indicate.place(x=3,y=240,width=5,height=40)
 
 options_frame.pack(side=tk.LEFT)
 options_frame.pack_propagate(False)
@@ -389,4 +408,5 @@ main_frame.pack_propagate(False)
 main_frame.configure(width=1000, height=700)
 home()
 
+root.resizable(False,False)
 root.mainloop()
