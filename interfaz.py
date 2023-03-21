@@ -1,13 +1,21 @@
+#instalar pip install pandas
+#instalar pip install sqlalchemy
+#instalar pip install db-sqlite3
 import tkinter as tk
+import pandas as pd
+from sqlalchemy import create_engine
+import sqlite3
 from tkinter import *
 from tkinter import ttk,messagebox
 import google.oauth2.credentials
 import google_auth_oauthlib.flow
 from googleapiclient.discovery import build
-# import pandas as pd
+from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
 
 class Canal:
-    def __init__(self, canal, categoria="No categorizado"):
+    def __init__(self, id_canal, canal, categoria="No categorizado"):
+        self.id_canal = id_canal
         self.canal = canal
         self.categoria = categoria
         
@@ -24,195 +32,108 @@ def hide_indicate():
     cerrar_button_indicate.config(bg="#c3c3c3")
 
 def home():
+    
     home_frame = tk.Frame(main_frame)
     lb=tk.Label(home_frame,text="Apartado Home",font=("Bold",30))
     lb.pack()
     home_frame.pack(pady=20)
 
-
-
-def deSuscribir():
-    window = Toplevel(root)
-    window.title("Desuscrito")
-    lb = tk.Label(window, text="Work In Progress, Deberia de estar desuscrito", font=("Bold", 30))
-    lb.pack()
-
 def canales():
 
-    def editar():
+    def editar_canal():
         item = tabla.selection()[0]
         valor = tabla.item(item, "values")
-        print(item)
-        tabla.item(item, values=(valor[0], cbCategoria.get()))
+        nueva_categoria=cbCategoria.get()
+        nueva_categoria_tupla=(nueva_categoria,)
+        cur=conn.execute("SELECT id_categoria FROM categorias WHERE categoria LIKE ? ",nueva_categoria_tupla)
+        id_nueva_categoria = cur.fetchone()
+        
 
-    def update_window():
-        canales_frame.update()
+        id_subscripcion_tupla=(valor[2],)
+        cur=conn.execute("SELECT id_subscripcion FROM subscripciones WHERE id_subscripcion LIKE ? ",id_subscripcion_tupla)
+        id_subscripcion = cur.fetchone()
+
+        cur.execute("UPDATE subscripciones SET id_categoria_sub = ? WHERE id_subscripcion = ?", (id_nueva_categoria[0], id_subscripcion[0]))
+        conn.commit()
+        tabla.item(item, values=(valor[0], cbCategoria.get(),valor[2]))
+        root.update()
+
+    def anular_subscripcion():
+        selected_row = tabla.focus()
+        if selected_row:
+            channel_id = tabla.item(selected_row)['values'][2]
+            #print(channel_id)
+            
+            subs = youtube.subscriptions().list(
+                part='id,snippet',
+                mine=True,
+                maxResults=5
+            ).execute()
+
+            subscription_id = None
+            for sub in subs['items']:
+                if sub['snippet']['resourceId']['channelId'] == channel_id:
+                    subscription_id = sub['id']
+                    break
+
+            if subscription_id:
+                youtube.subscriptions().delete(
+                    id=subscription_id
+                ).execute()
+                messagebox.showinfo("Éxito", "Se anuló la suscripción al canal.")
+                tabla.delete(selected_row)
+                print(channel_id)
+                cur.execute("DELETE FROM subscripciones WHERE id_subscripcion = ?", (channel_id,))
+                conn.commit()
+
+
+            else:
+                messagebox.showwarning("Advertencia", "No se ha encontrado la suscripción a este canal.")
+        else:
+            messagebox.showwarning("Advertencia", "No se ha seleccionado canal para anular suscripción.")
 
     def selectItem(a):
         item = tabla.selection()[0]
         valor = tabla.item(item, "values")
-        print (valor)
-        update_window()
-        
+        root.update()
         cbCategoria.set(valor[1])
         lbCanal.config(text=valor[0])
         return valor
-
-    def obtener_canales_suscritos(yt):
-        canales = []
-        request = yt.subscriptions().list(part="snippet", mine=True, maxResults=50)#
-        print(request)
-        
-        while request is not None:
-            response = request.execute()
-            for item in response['items']:
-                canal = item['snippet']['title']
-                canales.append(Canal(canal))
-            request = yt.subscriptions().list_next(request, response)
-        return canales
-
+    
     canales_frame = tk.Frame(main_frame)
     lb = tk.Label(canales_frame, text="Apartado Canales", font=("Bold", 30))
     lb.pack()
 
-    # Obtener los canales a los que está suscrito el usuario como objetos Canal
-    canales = obtener_canales_suscritos(youtube)
-
-    # Crear una tabla para mostrar los canales
-    tabla = ttk.Treeview(canales_frame, columns=("Canal", "Categoría"), show="headings")
+    tabla = ttk.Treeview(canales_frame, columns=("Canal", "Categoría", "ID"), show="headings")
     tabla.heading("Canal", text="Canal")
     tabla.heading("Categoría", text="Categoría")
+    tabla.heading("ID", text="ID")
     tabla.pack()
-
-    # Recorrer la lista de objetos Canal y mostrarlos en la tabla
-    for i, canal in enumerate(canales):
-        tabla.insert("", "end", values=(canal.canal, canal.categoria))
+    cur=conn.execute("SELECT id_usuario FROM usuarios WHERE nombre_usuario LIKE ? ",usuarioPrincipal)
+    id_usuario = cur.fetchone()
+    cur=conn.execute("select nombre,categoria,id_subscripcion from (subscripciones inner	join categorias on subscripciones.id_categoria_sub=categorias.id_categoria ) where id_usuario_sub=?",id_usuario)
+    id_canal = cur.fetchall()
+    for i in id_canal:
+        
+        tabla.insert("", "end", values=i)
 
     
     texto=tabla.bind('<ButtonRelease-1>', selectItem)
-    print (texto)
     lbCanal=tk.Label(canales_frame, text="canal")
     lbCanal.pack()
-    
-    BDeSuscribir = Button(canales_frame,text="De-suscribirse",command=deSuscribir)
-    BDeSuscribir.pack()
+
+    bEditar = Button(canales_frame,text="Editar",command=editar_canal)
+    bEditar.pack()
+
+    bAnular = tk.Button(canales_frame, text="Anular suscripción", command=anular_subscripcion)
+    bAnular.pack()
 
     n = tk.StringVar()
     cbCategoria = ttk.Combobox(canales_frame, width = 27, textvariable = n,state="readonly")
-    cbCategoria['values'] = ("No categorizado",' Entretenimiento',' Educacion',' Videojuegos')
-    cbCategoria.current()
-
-    bEditar = Button(canales_frame,text="Editar",command=editar)
-    bEditar.pack()
-
-
+    cbCategoria['values'] = ("No categorizado",'Entretenimiento','Educacion','Videojuegos')
+    cbCategoria.current(0)
+    cbCategoria.pack()
     canales_frame.pack(pady=20)
-
-'''
-def canales():
-    def obtener_canales_suscritos(yt):
-        # Obtener los canales a los que está suscrito el usuario
-        canales = []
-        request = yt.subscriptions().list(part="snippet", mine=True, maxResults=50)
-        print(request)
-        
-        while request is not None:
-            response = request.execute()
-            for item in response['items']:
-                canal = item['snippet']['title']
-                canales.append(Canal(canal))
-            request = yt.subscriptions().list_next(request, response)
-        return canales
-
-    canales_frame = tk.Frame(main_frame)
-    lb=tk.Label(canales_frame,text="Apartado Canales",font=("Bold",30))
-    lb.pack()
-
-    # Obtener los canales a los que está suscrito el usuario como objetos Canal
-    canales = obtener_canales_suscritos(youtube)
-
-    # Crear una tabla para mostrar los canales
-    tabla_canvas = tk.Canvas(canales_frame,width=400, height=350)
-    tabla_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-
-    scrollbar = tk.Scrollbar(canales_frame, orient=tk.VERTICAL, command=tabla_canvas.yview)
-    scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-
-    tabla_canvas.configure(yscrollcommand=scrollbar.set)
-
-    tabla = tk.Frame(tabla_canvas)
-    tabla_canvas.create_window((0,0), window=tabla, anchor='nw')
-
-    # Crear encabezados de la tabla
-    tk.Label(tabla, text="Canal", font=("bold", 15)).grid(row=0, column=0, padx=10, sticky='w')
-    tk.Label(tabla, text="Categoría", font=("bold", 15)).grid(row=0, column=1, padx=10, sticky='w')
-
-    # Recorrer la lista de objetos Canal y mostrarlos en la tabla
-    for i, canal in enumerate(canales):
-        tk.Label(tabla, text=canal.canal, anchor='w').grid(row=i+1, column=0, padx=10, sticky='w')
-        tk.Label(tabla, text=canal.categoria, anchor='w').grid(row=i+1, column=1, padx=10, sticky='w')
-
-    tabla.update_idletasks()
-
-    tabla_canvas.config(scrollregion=tabla_canvas.bbox('all'))
-
-    canales_frame.pack(pady=20)
-'''
-
-'''
-def suscribirse():
-    def search_channels(query):
-        request = youtube.search().list(
-            part='id,snippet',
-            q=query,
-            type='channel',
-            maxResults=5
-        )
-        response = request.execute()
-
-        # Extrae la información relevante de la respuesta de la API de YouTube
-        channels = []
-        for item in response['items']:
-            channel_id = item['id']['channelId']
-            channel_title = item['snippet']['title']
-            channel_description = item['snippet']['description']
-            channels.append({'Título': channel_title, 'Descripción': channel_description, 'ID':channel_id})
-
-        # Devuelve los resultados de búsqueda en forma de DataFrame de pandas
-        return pd.DataFrame(channels)
-    
-    def create_table(parent, df):
-        tree = ttk.Treeview(parent, columns=list(df.columns), show="headings")
-        for col in df.columns:
-            tree.heading(col, text=col)
-        for row in df.to_numpy().tolist():
-            tree.insert("", "end", values=row)
-        tree.pack(expand=True,pady=20)#side='left', fill='both',
-        return tree
-    
-    def on_search():
-        query = search_entry.get()
-        df = search_channels(query)
-        create_table(table_frame, df)
-
-    suscribirse_frame=tk.Frame(main_frame)
-    lb=tk.Label(suscribirse_frame,text="Apartado suscribirse",font=("Bold",30))
-    lb.pack()
-
-    search_label = tk.Label(suscribirse_frame, text="Término de búsqueda:")
-    search_label.pack(side= 'left',padx=5, pady=20)
-
-    search_entry = tk.Entry(suscribirse_frame)
-    search_entry.pack(side='left', fill='x', padx=5, pady=20, expand=True)
-
-    search_button = tk.Button(suscribirse_frame, text="Buscar", command=on_search)
-    search_button.pack(side='left', padx=5, pady=20)
-
-    table_frame = tk.Frame(suscribirse_frame)
-    table_frame.pack(fill='both', expand=True,pady=20)
-
-    suscribirse_frame.pack(pady=20)
-'''
 
 def suscribirse():
     def agregar_datos_busqueda():
@@ -232,10 +153,34 @@ def suscribirse():
             descripcion_canal = item['snippet']['description']
             tabla.insert("",tk.END,text=str(nombre_canal), values=(str(descripcion_canal),str(id_canal)))
     def suscribirse_acc():
-        text = tabla.item(tabla.selection())['text']
-        values = tabla.item(tabla.selection())['values']
-        print(values)
-        messagebox.showinfo("Título del mensaje", f"El nombre del canal seleccionado es: {text}\nEl ID del canal seleccionado es: {values[1]}")
+        item = tabla.selection()[0]
+        valor = tabla.item(item, "values")
+        nombre=tabla.item(item, "text")
+        print(valor)
+        print(nombre)
+        cur=conn.execute("SELECT id_usuario FROM usuarios WHERE nombre_usuario LIKE ? ",usuarioPrincipal)
+        id_usuario = cur.fetchall()
+        try:
+            response = youtube.subscriptions().insert(
+                part='snippet',
+                body={
+                    'snippet': {
+                        'resourceId': {
+                            'kind': 'youtube#channel',
+                            'channelId': valor[1]
+                        }
+                    }
+                }
+            ).execute()
+            messagebox.showinfo("Éxito", "Se ha suscrito el canal a su cuenta")
+            print(f"Se ha suscrito al canal '{valor[0]}' en YouTube.")
+            cur.execute("INSERT INTO subscripciones (id_subscripcion, nombre, id_categoria_sub, id_usuario_sub) VALUES (?, ?, ?, ?)", (valor[1],nombre, 1, id_usuario[0][0]))
+            conn.commit()
+
+        except HttpError as e:
+            print(f"Error al suscribirse al canal '{valor[0]}' en YouTube: {e}")
+            messagebox.showerror("Error", f"No se ha podido suscribir al canal {valor[0]}")
+
         
     suscribirse_frame=tk.Frame(main_frame)
     lb=tk.Label(suscribirse_frame,text="Apartado suscribirse",font=("Bold",30))
@@ -271,15 +216,105 @@ def limpiarFrame():
     for frame in main_frame.winfo_children():
         frame.destroy()
 
+def cerrar():
+    conn.close()
+    root.quit()
+
+def obtener_canales_suscritos(yt):
+    subscripciones = []
+    request = yt.subscriptions().list(part="snippet", mine=True, maxResults=50)#
+    
+    while request is not None:
+        response = request.execute()
+        for item in response['items']:
+            canal_id = item['snippet']['resourceId']['channelId']
+            
+            
+            canal_nombre = item['snippet']['title']
+            
+            subscripciones.append(Canal(canal_id, canal_nombre))
+
+            canal_id_tupla=(canal_id,)
+            
+            cur=conn.execute("SELECT nombre_usuario FROM usuarios WHERE nombre_usuario LIKE ? ",usuarioPrincipal)
+            resultado = cur.fetchall()
+               
+            
+            cur=conn.execute("SELECT id_subscripcion FROM subscripciones WHERE id_subscripcion= ? ",canal_id_tupla)
+            resultadoCanal = cur.fetchall()
+
+            cur=conn.execute("SELECT id_usuario FROM usuarios WHERE nombre_usuario LIKE ? ",usuarioPrincipal)
+            id_usuario = cur.fetchall()
+            
+            if not resultadoCanal :
+                conn.execute("INSERT INTO subscripciones (id_subscripcion,nombre,id_categoria_sub,id_usuario_sub) VALUES (?,?,?,?)", (canal_id,canal_nombre,1,id_usuario[0][0]))
+                conn.commit()
+                print("ingresado")
+        request = yt.subscriptions().list_next(request, response)
+    return subscripciones
+
 CLIENT_SECRETS_FILE = "client_secret.json"
 SCOPES = ['https://www.googleapis.com/auth/youtube.force-ssl']
 
-# Autorización del flujo OAuth2 del usuario
+conn = sqlite3.connect('base_datos_TubeTag.sqlite')
+
+cur = conn.cursor()
+
+try:
+    cur.execute("SELECT * FROM usuarios")
+except:
+    conn.execute('''CREATE TABLE usuarios
+                (id_usuario INTEGER PRIMARY KEY AUTOINCREMENT,
+                nombre_usuario           TEXT    NOT NULL);''')
+
+    conn.execute('''CREATE TABLE subscripciones
+                (id_subscripcion TEXT PRIMARY KEY,
+                nombre           TEXT    NOT NULL,
+                id_categoria_sub             TEXT     NOT NULL,
+                id_usuario_sub INT NOT NULL);''')
+
+    conn.execute('''CREATE TABLE categorias
+                (id_categoria INTEGER PRIMARY KEY AUTOINCREMENT,
+                categoria TEXT NOT NULL,
+                id_usuario TEXT );''')
+    
+    categoriasDefecto=("No categorizado","NULL")
+    cur.execute("INSERT INTO categorias ( categoria, id_usuario)  VALUES ( ?, ?)", categoriasDefecto)
+    conn.commit()
+    categoriasDefecto=("Entretenimiento","NULL")
+    cur.execute("INSERT INTO categorias ( categoria, id_usuario)  VALUES ( ?, ?)", categoriasDefecto)
+    conn.commit()
+    categoriasDefecto=("Educacion","NULL")
+    cur.execute("INSERT INTO categorias ( categoria, id_usuario)  VALUES ( ?, ?)", categoriasDefecto)
+    conn.commit()
+    categoriasDefecto=("Videojuegos","NULL")
+    cur.execute("INSERT INTO categorias ( categoria, id_usuario)  VALUES ( ?, ?)", categoriasDefecto)
+    conn.commit()
+
+
 flow = google_auth_oauthlib.flow.InstalledAppFlow.from_client_secrets_file(CLIENT_SECRETS_FILE, SCOPES)
 credentials = flow.run_local_server(port=0)
 
-# Construcción de la instancia del servicio de la API de YouTube
 youtube = build('youtube', 'v3', credentials=credentials)
+
+channels_response = youtube.channels().list(mine=True,part='id').execute()
+usuarioPrincipal = channels_response['items'][0]['id']
+usuarioPrincipal=(usuarioPrincipal,)
+
+cur=conn.execute("SELECT nombre_usuario FROM usuarios WHERE nombre_usuario LIKE ? ",usuarioPrincipal)
+resultado = cur.fetchone()
+
+if resultado is None:
+    # Insertar la fila en la tabla
+    conn.execute("INSERT INTO usuarios (nombre_usuario) VALUES (?)", usuarioPrincipal)
+    conn.commit()
+subscripciones = obtener_canales_suscritos(youtube)
+
+
+channels_response = youtube.channels().list(mine=True,part='id').execute()
+
+
+
 
 root = tk.Tk()
 root.geometry("1000x600")
@@ -303,7 +338,7 @@ suscribirse_button.place(x=8,y=150)
 suscribirse_button_indicate=tk.Label(options_frame,text="",bg="#c3c3c3")
 suscribirse_button_indicate.place(x=3,y=150,width=5,height=40)
 
-cerrar_button=tk.Button(options_frame,text="Cerrar",font=("bold",15),fg="#158aff",bd=0,bg="#c3c3c3",command=root.quit)
+cerrar_button=tk.Button(options_frame,text="Cerrar",font=("bold",15),fg="#158aff",bd=0,bg="#c3c3c3",command=cerrar)
 cerrar_button.place(x=8,y=200)
 cerrar_button_indicate=tk.Label(options_frame,text="",bg="#c3c3c3")
 cerrar_button_indicate.place(x=3,y=200,width=5,height=40)
