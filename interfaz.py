@@ -58,6 +58,29 @@ def canales():
         tabla.item(item, values=(valor[0], cbCategoria.get(),valor[2]))
         root.update()
 
+    def añadir_categoria():
+        nueva_categoria=tFieldCategoria.get()
+        nueva_categoria_tupla=(nueva_categoria,)
+        cur=conn.execute("SELECT id_categoria FROM categorias WHERE categoria LIKE ? ",nueva_categoria_tupla)
+        id_nueva_categoria = cur.fetchone()
+
+        cur=conn.execute("SELECT id_usuario FROM usuarios WHERE nombre_usuario LIKE ? ",usuarioPrincipal)
+        id_usuario = cur.fetchall()
+
+        if not id_nueva_categoria:
+            conn.execute("INSERT INTO categorias (categoria,id_usuario) VALUES (?,?)", (nueva_categoria,id_usuario[0][0]))
+            conn.commit()
+            messagebox.showinfo("Éxito", "Se agrego la nueva categoria.")
+            root.update()
+            cur=conn.execute("SELECT categoria from categorias")
+            cats=cur.fetchall()
+            cbCategoria.config(values=cats)
+        else:
+            messagebox.showwarning("Advertencia", "Ya existe la categoria.")
+        root.update()
+        canales_frame.update()
+
+
     def anular_subscripcion():
         selected_row = tabla.focus()
         if selected_row:
@@ -129,10 +152,22 @@ def canales():
     bAnular.pack()
 
     n = tk.StringVar()
+
+    cur=conn.execute("SELECT categoria from categorias")
+    cats=cur.fetchall()
+    print(cats)
+
     cbCategoria = ttk.Combobox(canales_frame, width = 27, textvariable = n,state="readonly")
-    cbCategoria['values'] = ("No categorizado",'Entretenimiento','Educacion','Videojuegos')
+    cbCategoria['values'] = (cats)#"No categorizado",'Entretenimiento','Educacion','Videojuegos'
     cbCategoria.current(0)
     cbCategoria.pack()
+
+    tFieldCategoria=ttk.Entry(canales_frame, textvariable="Nueva categoria")
+    tFieldCategoria.pack()
+
+    bEditarCategoria=tk.Button(canales_frame, text="Agregar Categoria", command=añadir_categoria)
+    bEditarCategoria.pack()
+
     canales_frame.pack(pady=20)
 
 def suscribirse():
@@ -276,7 +311,7 @@ except:
     conn.execute('''CREATE TABLE categorias
                 (id_categoria INTEGER PRIMARY KEY AUTOINCREMENT,
                 categoria TEXT NOT NULL,
-                id_usuario TEXT );''')
+                id_usuario INTEGER );''')
     
     categoriasDefecto=("No categorizado","NULL")
     cur.execute("INSERT INTO categorias ( categoria, id_usuario)  VALUES ( ?, ?)", categoriasDefecto)
